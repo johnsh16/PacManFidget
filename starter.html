@@ -1,0 +1,284 @@
+<html>
+<style>
+    #velocity_info {
+        width: 150px;
+        visibility: hidden;
+    }
+    .Velocity_Div {
+        background-color: #f1f1f1;
+        border: 1px solid #d3d3d3;
+    }
+    #mydiv {
+        position: absolute;
+        z-index: 9;
+        
+        text-align: center;
+    }
+
+    #mydivheader {
+        padding: 10px;
+        cursor: move;
+        z-index: 10;
+        background-color: #2196F3;
+        color: #fff;
+    }
+
+    #gravity_indicator {
+        text-align: center;
+        height: 20px;
+        width: 75px;
+        background-color:red;
+        position: relative;
+        z-index: 1;
+    }
+    .pac {
+        z-index:100;
+    }
+
+    #game {
+        background-color: #f1f1f1;
+        border: 1px solid #d3d3d3;
+        width: 450px;
+    }
+</style>
+<SCRIPT>
+    var pos = 0;
+    var gravity = false;
+    var gravityMag = 1;
+    const pacArray = [
+        ['PacMan1.png', 'PacMan2.png'],
+        ['PacMan3.png', 'PacMan4.png']
+    ];
+    var direction = 0;
+    const pacMen = []; // This array holds all the pacmen
+    const velocityInfo = [];
+
+    function setToRandom(scale) {
+        return {
+            x: Math.floor(Math.random() * scale),
+            y: Math.floor(Math.random() * scale)
+        }
+    }
+
+    const velocityEntry = {
+        velocityX : 0,
+        velocityY : 0
+    }
+    // Factory to make a PacMan at a random position with random velocity
+    window.addEventListener('keydown', checkKeyPress, false);
+
+    function checkKeyPress(key) {
+        console.log(key);
+        if (key.key == "ArrowLeft") { 
+            //arrow left 
+            pacMen.forEach((item) => {
+                item.velocity.x -= 5;
+            });
+            console.log('left');
+        }
+        if (key.key == 'ArrowUp') { 
+            //arrow up
+            pacMen.forEach((item) => {
+                item.velocity.y -= 5;
+            });
+            console.log('up');
+        }
+        if (key.key == 'ArrowRight') { 
+            //arrow right
+            pacMen.forEach((item) => {
+                item.velocity.x += 5;
+            });
+            console.log('right');
+        }
+        if (key.key == 'ArrowDown') { 
+            //arrow down
+            pacMen.forEach((item) => {
+                item.velocity.y += 5;
+            });
+            console.log('down');
+        }
+    }
+
+    function makePac() {
+        // returns an object with random values scaled {x: 33, y: 21}
+        let velocity = setToRandom(10); // {x:?, y:?}
+        let position = setToRandom(200);
+        // Add image to div id = game
+        let game = document.getElementById('game');
+        let newimg = document.createElement('img');
+        newimg.style.position = 'absolute';
+        newimg.src = 'PacMan1.png';
+        newimg.width = 100;
+        newimg.className = 'pac';
+        newimg.style.left = position.x;
+        newimg.style.top = position.y;
+        let newEntry =  new Object(velocityEntry);
+        newEntry.velocityX = velocity.x;
+        newEntry.velocityY = velocity.y;
+        // add new Child image to game
+        game.appendChild(newimg);
+        // return details in an object
+        return {
+            position,
+            velocity,
+            newimg,
+            newEntry
+        }
+    }
+
+    function update() {
+        //loop over pacmen array and move each one and move image in DOM
+        pacMen.forEach((item) => {
+            checkCollisions(item)
+            if (gravity) {
+                item.velocity.y += 2;
+            }
+            item.position.x += item.velocity.x;
+            item.position.y += item.velocity.y;
+                
+            item.newimg.style.left = item.position.x;
+            item.newimg.style.top = item.position.y;
+            updateDiv(item);
+        })
+        setTimeout(update, 20);
+    }
+
+    function updateDiv (item) {
+        document.getElementById(item.textRef).innerHTML = 
+        `PacMan #${item.index}` + '<br>' + `Velocity X: ${item.velocity.x}` + "<br>" + `Velocity Y: ${item.velocity.y}` + '<br>';
+    }
+
+    function shrinkOnWall (item) {
+        item.newimg.width -= 20;
+        setTimeout(()=>{
+            item.newimg.width += 20;
+        }, 25);
+        console.log(item.newimg.width);
+    }
+
+    function checkCollisions(item) {
+        if ((item.position.x+item.velocity.x+item.newimg.width)>window.innerWidth) {
+            item.velocity.x = -item.velocity.x;
+            shrinkOnWall(item);
+            item.newimg.src = 'PacMan3.png';
+        }
+        if (item.position.x+item.velocity.x<0) {
+            item.velocity.x=-item.velocity.x;
+            shrinkOnWall(item);
+            item.newimg.src = 'PacMan1.png';
+        }
+        if ((item.position.y+item.velocity.y+item.newimg.width)>window.innerHeight) {
+            item.velocity.y=-item.velocity.y;
+            shrinkOnWall(item);
+        }
+        if (item.position.y+item.velocity.y<0) {
+            item.velocity.y=-item.velocity.y;
+            shrinkOnWall(item);
+        }
+    }
+
+    function makeOne() {
+        let newPac = makePac();
+        let newVelDiv = document.createElement("div");
+        newVelDiv.id = "pac" + String(pacMen.length-1);
+        newVelDiv.className = 'Velocity_Div'
+        newVelDiv.innerHTML = `PacMan #${pacMen.length-1}` + '<br>' + `Velocity X: ${newPac.velocity.x}` + "<br>" + `Velocity Y: ${newPac.velocity.y}` + '<br>';
+        velocity_info.appendChild(newVelDiv);
+        newPac.textRef = newVelDiv.id;
+        newPac.index = pacMen.length - 1;
+        pacMen.push(newPac); // add a new PacMan
+    }
+
+    function freeze() {
+        pacMen.forEach((item) => {
+            item.velocity.x = 0;
+            item.velocity.y = 0;
+        })
+    }
+
+
+    function reveal_velocity() {
+        let to_reveal = document.getElementById('velocity_info');
+        if (to_reveal.style.visibility == 'hidden') {
+            to_reveal.style.visibility = 'visible';
+        } else {
+            to_reveal.style.visibility = 'hidden';
+        }
+    }
+
+    function toggleGravity () {
+        if (gravity) {
+            gravity = false;
+            document.getElementById('gravity_indicator').style.backgroundColor = 'red';
+        } else {
+            gravity = true;
+            document.getElementById('gravity_indicator').style.backgroundColor = 'lime';
+        }
+    }
+
+    //Going to attempt to create a draggable wall
+    //When the pacman hits the wall, it acts as if it is at the end of the screen
+    dragElement('velocity_info');
+
+    function dragElement(passedId) {
+        let elmt = document.getElementById(passedId);
+        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        if (document.getElementById(elmnt.id + "header")) {
+        // if present, the header is where you move the DIV from:
+            document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        } else {
+        // otherwise, move the DIV from anywhere inside the DIV:
+            elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+        }
+    }
+    
+
+</SCRIPT>
+
+<body>
+    <div id='game'>
+        <button onclick='makeOne()' width='50' height='50' class="big_button"><img src='PacMan1.png' height="50" width='50'></button>
+        <button onclick='update()' width='200' height='100' class="big_button">Start Game</button>
+        <button onclick='freeze()' width='200' height='30'>Freeze</button>
+        <button onclick='reveal_velocity()' width ='200' height='20'>Display Velocity Info</button>
+        <button onclick='toggleGravity()' width ='200' height='20'>Gravity</button>
+        <button onclick='clear()' width ='200' height='20'>Clear</button>
+        <div id='gravity_indicator'>GRAVITY</div>
+
+    </div>
+    <div id='velocity_info'></div>
+    
+    <!-- Draggable DIV -->
+</body>
+
+</html>
