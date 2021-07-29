@@ -1,9 +1,8 @@
 # pacmen
-Factory for making pacmen
-You are given a starter.html code.
-When button "make one" is pressed you need to complete the code 
-to position the new pacman image and add it to the "game" div. It is then added to the array of pacmen, which keeps track of the position and velocity of each pacman.
-You also need to make each pacman bounce off any wall it hits. 
-Start by getting at least one pacman positioned and viewable. 
+## This exercise was created as a part of the MIT x-Pro Full Stack coding certificate course, and modified on my own to include new features. 
+## The original project was just to create a PacMan factory that would add PacMen to the DOM and have them bounce off the walls. 
+## In addition to this functionality, I have been experimenting. I added a gravity toggle, which applies a gravity to the PacMen present. I added a way to track the velocity of each PacMan, and each direction key speeds up the PacMen in the given direction. The 'Freeze' button sets the velocity of all the PacMen to 0. 
+## I enjoyed exploring the connection of key-press events to the DOM and digging in further to interlocking functions and increasingly delightful screen animations and events.
+
 
 <img src="PacMan1.png">
